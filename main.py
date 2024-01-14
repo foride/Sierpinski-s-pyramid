@@ -141,9 +141,9 @@ def sierpinski(vertices, depth, texture_status):
 def light(light_color):
     # Set the direction and properties of the light source (GL_LIGHT0)
     light_direction = (-1, -1, -1, 0)
-    glLightfv(GL_LIGHT0, GL_POSITION, light_direction)
+    light_direction_normalized = [x / math.sqrt(3) for x in light_direction]
+    glLightfv(GL_LIGHT0, GL_POSITION, light_direction_normalized)
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_color)
-    glLightfv(GL_LIGHT0, GL_POSITION, light_color)
     glLightfv(GL_LIGHT0, GL_AMBIENT, light_color)
 
     # Enable coloring of materials based on ambient and diffuse components
@@ -166,7 +166,7 @@ def sphere(radius, slices, stacks):
 
 
 # Function to draw a small textured sphere representing the light source
-def light_sphere():
+def light_sphere(light_color):
     # Save the current transformation matrix
     glPushMatrix()
 
@@ -175,7 +175,7 @@ def light_sphere():
 
     # Scale down the sphere to a size of 0.1 in each dimension
     glScalef(0.1, 0.1, 0.1)
-
+    glColor3fv(light_color[:3])
     # Draw a textured sphere with radius 1, using 30 slices and 30 stacks
     sphere(1, 30, 30)
 
@@ -234,6 +234,10 @@ def handle_events(rotation_status, texture_status, light_color, levels):
             # Toggles on/off rotation when the 'r' key is pressed
             if event.key == pygame.K_r:
                 rotation_status = 1 - rotation_status
+            # Shut-downs the application when the 'q' key is presses
+            if event.key == pygame.K_q:
+                pygame.quit()
+                quit()
 
             # Toggles on/off textures when the 't' key is pressed
             if event.key == pygame.K_t:
@@ -243,11 +247,20 @@ def handle_events(rotation_status, texture_status, light_color, levels):
                 else:
                     texture_status = 0
 
-
+            # Darken Point Light
+            if event.key == pygame.K_6:
+                light_color[1] -= 0.1
+            # Darken Directional Light
+            if event.key == pygame.K_7:
+                light_color[2] -= 0.1
 
             # Set pyramid color to green and turn off directional light when the '8' key is pressed
             if event.key == pygame.K_8:
                 light_color = [0.0, 1.0, 0.0, 1.0]
+
+            # Set the light_color to default
+            if event.key == pygame.K_9:
+                light_color = [1.0, 1.0, 1.0, 1.0]
 
     return rotation_status, light_color, texture_status
 
@@ -296,7 +309,6 @@ def main():
         # Handle Pygame events and update application state
         rotation_status, light_color, texture_status = handle_events(rotation_status, texture_status, light_color,
                                                                      levels)
-
         light(light_color)
 
         # Clear the screen and set diffuse material color
@@ -318,7 +330,7 @@ def main():
         glTranslatef(0.0, -3.0, 0.0)  # Adjust the position of the sphere along the z-axis
         glRotatef(rotation_pyramid, 0, 1, 0)
         sphere(1.0, 30, 30)  # Set the radius and resolution
-        light_sphere()
+        light_sphere(light_color)
         glPopMatrix()
 
         # Update the display
